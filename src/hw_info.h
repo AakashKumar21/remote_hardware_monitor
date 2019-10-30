@@ -34,6 +34,7 @@ class hw_info
 
 	// Functions
 	void _find_coretemp_sensor(); // Find hwmon with sensor name=coretemp
+	int _get_int(string str);	 // To get int from meminfo file lines (single lines)
 
 public:
 	// 0: Total Mem
@@ -67,6 +68,7 @@ hw_info::hw_info()
 	_file_cpu_info = "/proc/cpuinfo"; // No use
 	_file_mem_info = "/proc/meminfo";
 	_file_stats = "/proc/stat";
+	// _file_cpu_temp is set by _find_coretemp_sensor()
 
 	// Regex
 	_digits = regex("[0-9]+");
@@ -141,4 +143,19 @@ void hw_info::_find_coretemp_sensor()
 		if (i == 10)
 			break;
 	}
+}
+
+int hw_info::_get_int(string str)
+{
+	stringstream s(str); 
+	string x;
+	int n;
+	string nul; // To store type of mem stat in meminfo file eg 
+				// in "MemFree:         1480184 kB"
+				// store "MemFree:"
+	s >> nul;
+	s >> x;		// Store proceding int in string above string 
+				// i.e "MemFree:" 
+	n = stoi(x);
+	return n;
 }
