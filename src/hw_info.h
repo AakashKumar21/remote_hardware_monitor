@@ -35,10 +35,12 @@ class hw_info
 	// Functions
 	void _find_coretemp_sensor(); // Find hwmon with sensor name=coretemp
 	int _get_int(string str);	 // To get int from meminfo file lines (single lines)
+	void _get_mem_stat();
 
 public:
 	// 0: Total Mem
 	// 1: Free Mem
+	// 2: Available mem
 	// 3: Cached
 	// 4: Swap Total
 	// 5: Swap Free
@@ -49,11 +51,12 @@ public:
 	//index
 	enum
 	{
-		mem_total_i = 0,
-		mem_free_i = 1,
-		cached_i = 3,
-		swap_total_i = 13,
-		swap_free_i = 14
+		MemTotal = 0,
+		MemFree = 1,
+		MemAvailable = 2,
+		Cached = 3,
+		SwapTotal = 14,
+		SwapFree = 15
 	};
 
 	void refresh();
@@ -77,28 +80,29 @@ hw_info::hw_info()
 
 void hw_info::refresh()
 {
-	ifstream _meminfo_file(_file_mem_info);
-	ifstream _cpu_stat_file(_file_stats);
-	ifstream _cpu_temp_file(_file_cpu_temp);
+	_get_mem_stat();
+	// ifstream _meminfo_file(_file_mem_info);
+	// ifstream _cpu_stat_file(_file_stats);
+	// ifstream _cpu_temp_file(_file_cpu_temp);
 
-	// If any file reading fails throw exception
-	if (_meminfo_file.fail() ||
-		_cpu_stat_file.fail() ||
-		_cpu_temp_file.fail())
-	{
-		cerr << "Failed to open one or more file:\n"
-			 << _file_mem_info << ": " << _meminfo_file.is_open() << endl
-			 << _file_stats << ": " << _cpu_stat_file.is_open() << endl
-			 << _file_cpu_temp << ": " << _cpu_temp_file.is_open() << endl;
-		throw std::runtime_error("One more file(s) cannot be opened");
-	}
+	// // If any file reading fails throw exception
+	// if (_meminfo_file.fail() ||
+	// 	_cpu_stat_file.fail() ||
+	// 	_cpu_temp_file.fail())
+	// {
+	// 	cerr << "Failed to open one or more file:\n"
+	// 		 << _file_mem_info << ": " << _meminfo_file.is_open() << endl
+	// 		 << _file_stats << ": " << _cpu_stat_file.is_open() << endl
+	// 		 << _file_cpu_temp << ": " << _cpu_temp_file.is_open() << endl;
+	// 	throw std::runtime_error("One more file(s) cannot be opened");
+	// }
 
 	// cout << "Total Mem: " << meminfo[0] << endl;
 	// cout << "Free Mem: " << meminfo[1] << endl;
 	// cout << "Cached: " << meminfo[2] << endl;
 	//cout << "Cpu %: " << cpu[0] << endl;
-	_meminfo_file.seekg(0);
-	_cpu_stat_file.seekg(0);
+	// _meminfo_file.seekg(0);
+	// _cpu_stat_file.seekg(0);
 	//regex_search(total_mem, m, r);
 }
 
@@ -147,15 +151,47 @@ void hw_info::_find_coretemp_sensor()
 
 int hw_info::_get_int(string str)
 {
-	stringstream s(str); 
+	stringstream s(str);
 	string x;
 	int n;
-	string nul; // To store type of mem stat in meminfo file eg 
+	string nul; // To store type of mem stat in meminfo file eg
 				// in "MemFree:         1480184 kB"
 				// store "MemFree:"
 	s >> nul;
-	s >> x;		// Store proceding int in string above string 
-				// i.e "MemFree:" 
+	s >> x; // Store proceding int in string above string
+			// i.e "MemFree:"
 	n = stoi(x);
 	return n;
+}
+
+void hw_info::_get_mem_stat()
+{
+	static ifstream mem_stat_file(_file_mem_info);
+	string line;
+	for (short int i = 0; i < SwapFree; i++)
+	{
+		getline(mem_stat_file, line);
+		switch (i)
+		{
+		case MemTotal:
+			meminfo[0] = _get_int(line);
+			break;
+		case MemFree:
+			meminfo[1] = _get_int(line);
+			break;
+		case MemAvailable:
+			meminfo[2] = _get_int(line);
+			break;
+		case Cached:
+			meminfo[3] = _get_int(line);
+			break;
+		case SwapTotal:
+			meminfo[4] = _get_int(line);
+			break;
+		case SwapFree:
+			meminfo[5] = _get_int(line);
+			break;
+		}
+	}
+	mem_stat_file.seekg(0);
 }
