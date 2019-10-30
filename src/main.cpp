@@ -1,4 +1,3 @@
-#include "main.h"
 #include "hw_info.h"
 
 int main()
