@@ -32,9 +32,8 @@ class hw_info
 	string _file_disk;
 	string _file_cpu_temp;
 
-    // Functions
-    void _find_coretemp_sensor(); // Find hwmon with name=coretemp
-
+	// Functions
+	void _find_coretemp_sensor(); // Find hwmon with sensor name=coretemp
 
 public:
 	// 0: Total Mem
@@ -59,15 +58,15 @@ public:
 	void refresh();
 	hw_info();
 
-}hw_stat;
+} hw_stat;
 
 hw_info::hw_info()
 {
+	_find_coretemp_sensor();
 	//File locations
 	_file_cpu_info = "/proc/cpuinfo"; // No use
 	_file_mem_info = "/proc/meminfo";
 	_file_stats = "/proc/stat";
-	// _file_cpu_temp = "/sys/class/hwmon/hwmon3"; // For my PC this is coretemp (CPU temp)
 
 	// Regex
 	_digits = regex("[0-9]+");
@@ -79,6 +78,7 @@ void hw_info::refresh()
 	ifstream _meminfo_file(_file_mem_info);
 	ifstream _cpu_stat_file(_file_stats);
 	ifstream _cpu_temp_file(_file_cpu_temp);
+
 	// If any file reading fails throw exception
 	if (_meminfo_file.fail() ||
 		_cpu_stat_file.fail() ||
@@ -88,12 +88,12 @@ void hw_info::refresh()
 			 << _file_mem_info << ": " << _meminfo_file.is_open() << endl
 			 << _file_stats << ": " << _cpu_stat_file.is_open() << endl
 			 << _file_cpu_temp << ": " << _cpu_temp_file.is_open() << endl;
-			 throw std::runtime_error("One more file(s) cannot be opened");
+		throw std::runtime_error("One more file(s) cannot be opened");
 	}
 
-	cout << "Total Mem: " << meminfo[0] << endl;
-	cout << "Free Mem: " << meminfo[1] << endl;
-	cout << "Cached: " << meminfo[2] << endl;
+	// cout << "Total Mem: " << meminfo[0] << endl;
+	// cout << "Free Mem: " << meminfo[1] << endl;
+	// cout << "Cached: " << meminfo[2] << endl;
 	//cout << "Cpu %: " << cpu[0] << endl;
 	_meminfo_file.seekg(0);
 	_cpu_stat_file.seekg(0);
@@ -102,12 +102,43 @@ void hw_info::refresh()
 
 void hw_info::_find_coretemp_sensor()
 {
-    string hwmon_dir = "/sys/class/hwmon/";
-	string tmp;
-	int i=0;
-	// while(true)
-	// {
-	// 	ifstream ifs(hwmon_dir / "hwmon")
-	// }
-	// if(hwmon_dir.append())
+	string hwmon_dir = "/sys/class/hwmon/";
+	int i = 0;
+	while (true)
+	{
+		string tmp = hwmon_dir;
+		tmp += "hwmon";
+		tmp += to_string(i);
+		tmp += "/name";
+		cout << "current file: " << tmp << endl;
+		ifstream ifs;
+		ifs.open(tmp);
+		if (ifs.is_open())
+		{
+			string sen_name;
+			ifs >> sen_name;
+			cout << "sensor name: '" << sen_name << "'\n";
+			if (sen_name == "coretemp")
+			{
+				ifs.close();
+				// Save file location to
+				_file_cpu_temp += hwmon_dir + to_string(i) + "/temp1_input";
+				cout << "Found coretemp sensor at:"
+					 << _file_cpu_temp << endl;
+				break;
+			}
+			else
+				cout << "Checking next file\n";
+		}
+		else
+		{
+			cout << "Coretemp not found in your system\n";
+			ifs.close();
+			break;
+		}
+		i++;
+		ifs.close();
+		if (i == 10)
+			break;
+	}
 }
