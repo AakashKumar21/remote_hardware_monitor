@@ -13,20 +13,28 @@
 #include "cpu_usage.h"
 using namespace std;
 
-// Class hw_info
 
+#define DEBUG_ON
+#ifdef DEBUG_ON 
+#define LOG(x) std::cerr<<x<<endl;
+#else 
+#define LOG(x)
+#endif
+
+// Class hw_info
 class hw_info
 {
+	
 	//Memory Related
-	regex _digits;
+	// regex _digits;
 
 	//CPU Related
-	regex _cpu;
+	// regex _cpu;
 
 	// Disk Related
-	regex _disk_size_total;
-	vector<int> disk_free;
-	vector<int> disk_usage;
+	// regex _disk_size_total;
+	// vector<int> disk_free;
+	// vector<int> disk_usage;
 
 	//File locations
 	string _file_cpu_info;
@@ -34,6 +42,7 @@ class hw_info
 	string _file_stats;
 	string _file_disk;
 	string _file_cpu_temp;
+	string _file_cpu_freq;
 
 	// Functions
 	void _find_coretemp_sensor(); // Find hwmon with sensor name=coretemp
@@ -41,6 +50,7 @@ class hw_info
 	void _get_mem_stat();
 	void _get_cpu_temp();
 	void _get_cpu_usage();
+	void _get_cpu_freq();
 
 public:
 	// 0: Total Mem
@@ -54,6 +64,7 @@ public:
 	float cpu[4] = {0, 0, 0, 0};
 	int cpu_temp;
 	float cpu_usage;
+	int cpu_freq;
 
 	//index
 	enum
@@ -73,23 +84,27 @@ public:
 
 hw_info::hw_info()
 {
+	LOG("Class init")
 	_find_coretemp_sensor();
 	//File locations
 	_file_cpu_info = "/proc/cpuinfo"; // No use
 	_file_mem_info = "/proc/meminfo";
 	_file_stats = "/proc/stat";
+	_file_cpu_freq = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq"; // only for cpu0 fow now
 	// _file_cpu_temp is set by _find_coretemp_sensor()
 
 	// Regex
-	_digits = regex("[0-9]+");
-	_cpu = regex("[0-9]+");
+	// _digits = regex("[0-9]+");
+	// _cpu = regex("[0-9]+");
 }
 
 void hw_info::refresh()
 {
+	LOG("refresh called")
 	_get_mem_stat();
 	_get_cpu_temp();
 	_get_cpu_usage();
+	_get_cpu_freq();
 	// ifstream _meminfo_file(_file_mem_info);
 	// ifstream _cpu_stat_file(_file_stats);
 	// ifstream _cpu_temp_file(_file_cpu_temp);
@@ -169,12 +184,15 @@ int hw_info::_get_int(string str)
 	s >> nul;
 	s >> x; // Store proceding int in string above string
 			// i.e "MemFree:"
+	LOG("in func _get_int, x = ")
+	LOG(x)
 	n = stoi(x);
 	return n;
 }
 
 void hw_info::_get_mem_stat()
 {
+	LOG("_get_mem_stat() Called")
 	static ifstream mem_stat_file(_file_mem_info);
 	string line;
 	for (short int i = 0; i < SwapFree; i++)
@@ -209,10 +227,25 @@ void hw_info::_get_cpu_temp()
 {
 	ifstream ifs(_file_cpu_temp); // TODO static or not
 	string tmp;
+	ifs >> tmp;
+	LOG("in func _get_cpu_temp, str tmp=")
+	LOG(tmp)
 	cpu_temp = stoi(tmp);
+	ifs.close();
 }
 
 void hw_info::_get_cpu_usage()
 {
 	cpu_usage = get_cpu_usage();
+}
+
+void hw_info::_get_cpu_freq()
+{
+	ifstream ifs(_file_cpu_freq);
+	string freq; // tmp to hold cpu freq in str format
+	getline(ifs,freq);
+	cout << freq;
+	// cpu_freq = stoi(freq);
+	cout << cpu_freq << endl; 
+	ifs.close();
 }
