@@ -36,6 +36,7 @@ class hw_info
 	void _find_coretemp_sensor(); // Find hwmon with sensor name=coretemp
 	int _get_int(string str);	 // To get int from meminfo file lines (single lines)
 	void _get_mem_stat();
+	void _get_cpu_temp();
 
 public:
 	// 0: Total Mem
@@ -47,6 +48,7 @@ public:
 	int meminfo[6];
 	// 0: Cpu usage in %
 	float cpu[4] = {0, 0, 0, 0};
+	int cpu_temp;
 
 	//index
 	enum
@@ -81,6 +83,7 @@ hw_info::hw_info()
 void hw_info::refresh()
 {
 	_get_mem_stat();
+	_get_cpu_temp();
 	// ifstream _meminfo_file(_file_mem_info);
 	// ifstream _cpu_stat_file(_file_stats);
 	// ifstream _cpu_temp_file(_file_cpu_temp);
@@ -128,7 +131,7 @@ void hw_info::_find_coretemp_sensor()
 			{
 				ifs.close();
 				// Save file location to
-				_file_cpu_temp += hwmon_dir + to_string(i) + "/temp1_input";
+				_file_cpu_temp += hwmon_dir + "hwmon" + to_string(i) + "/temp1_input";
 				cout << "Found coretemp sensor at:"
 					 << _file_cpu_temp << endl;
 				break;
@@ -194,4 +197,15 @@ void hw_info::_get_mem_stat()
 		}
 	}
 	mem_stat_file.seekg(0);
+}
+
+void hw_info::_get_cpu_temp()
+{
+	ifstream ifs(_file_cpu_temp); // TODO static or not
+	string tmp;
+	getline(ifs,tmp);
+	cout << "CPU temp: ";
+	cout << "\n";
+	cpu_temp = stoi(tmp);
+	cout << cpu_temp;
 }

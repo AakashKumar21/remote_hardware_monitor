@@ -18,7 +18,7 @@ int main()
 
 	// Temperatures
 	thing["temp"] >> [](pson &out) {
-		out["cpu"] = hw_stat.cpu_temp;
+		out["cpu"] = hw_stat.cpu_temp / 1000;
 		out["hdd"] = -1;
 	};
 	thing.start();
