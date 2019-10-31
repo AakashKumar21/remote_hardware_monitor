@@ -7,7 +7,10 @@
 #include <regex>
 #include <chrono>
 #include <sstream>
+#include <thread>
+#include <chrono>
 #include "credential.c"
+#include "cpu_usage.h"
 using namespace std;
 
 // Class hw_info
@@ -37,6 +40,7 @@ class hw_info
 	int _get_int(string str);	 // To get int from meminfo file lines (single lines)
 	void _get_mem_stat();
 	void _get_cpu_temp();
+	void _get_cpu_usage();
 
 public:
 	// 0: Total Mem
@@ -49,6 +53,7 @@ public:
 	// 0: Cpu usage in %
 	float cpu[4] = {0, 0, 0, 0};
 	int cpu_temp;
+	float cpu_usage;
 
 	//index
 	enum
@@ -84,6 +89,7 @@ void hw_info::refresh()
 {
 	_get_mem_stat();
 	_get_cpu_temp();
+	_get_cpu_usage();
 	// ifstream _meminfo_file(_file_mem_info);
 	// ifstream _cpu_stat_file(_file_stats);
 	// ifstream _cpu_temp_file(_file_cpu_temp);
@@ -203,9 +209,10 @@ void hw_info::_get_cpu_temp()
 {
 	ifstream ifs(_file_cpu_temp); // TODO static or not
 	string tmp;
-	getline(ifs,tmp);
-	cout << "CPU temp: ";
-	cout << "\n";
 	cpu_temp = stoi(tmp);
-	cout << cpu_temp;
+}
+
+void hw_info::_get_cpu_usage()
+{
+	cpu_usage = get_cpu_usage();
 }

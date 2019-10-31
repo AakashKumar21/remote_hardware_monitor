@@ -13,7 +13,7 @@ int main()
 	};
 
 	thing["CPU"] >> [](pson &out) {
-		out["Usage"] = hw_stat.cpu[0];
+		out["Usage"] = hw_stat.cpu_usage;
 	};
 
 	// Temperatures
