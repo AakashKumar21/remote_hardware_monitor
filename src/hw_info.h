@@ -14,7 +14,7 @@
 using namespace std;
 
 
-#define DEBUG_ON
+// #define DEBUG_ON
 #ifdef DEBUG_ON 
 #define LOG(x) std::cerr<<x<<endl;
 #else 
@@ -244,8 +244,8 @@ void hw_info::_get_cpu_freq()
 	ifstream ifs(_file_cpu_freq);
 	string freq; // tmp to hold cpu freq in str format
 	getline(ifs,freq);
-	cout << freq;
-	// cpu_freq = stoi(freq);
-	cout << cpu_freq << endl; 
+	// cout << freq;
+	cpu_freq = stoi(freq);
+	// cout << cpu_freq << endl; 
 	ifs.close();
 }
