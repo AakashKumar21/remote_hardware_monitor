@@ -3,9 +3,9 @@
 #include <fstream>
 #include <unistd.h>
 #include <thread>
-#include <vector>
-#include <regex>
-#include <chrono>
+// #include <vector>
+// #include <regex>
+// #include <chrono>
 #include <sstream>
 #include <thread>
 #include <chrono>
@@ -24,29 +24,22 @@ using namespace std;
 // Class hw_info
 class hw_info
 {
-	
-	//Memory Related
-	// regex _digits;
-
-	//CPU Related
-	// regex _cpu;
-
-	// Disk Related
-	// regex _disk_size_total;
-	// vector<int> disk_free;
-	// vector<int> disk_usage;
 
 	//File locations
-	string _file_cpu_info;
-	string _file_mem_info;
-	string _file_stats;
 	string _file_disk;
 	string _file_cpu_temp;
-	string _file_cpu_freq;
+
+	// _file_cpu_info = "/proc/cpuinfo"; // No use
+	const string _file_mem_info = "/proc/meminfo";
+	const string _file_stats = "/proc/stat";
+	// only for cpu0 fow now
+	const string _file_cpu_freq = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq"; 
+	// _file_cpu_temp is set by _find_coretemp_sensor()
 
 	// Functions
 	void _find_coretemp_sensor(); // Find hwmon with sensor name=coretemp
-	int _get_int(string str);	 // To get int from meminfo file lines (single lines)
+	// To get int from meminfo file lines (single lines)
+	int _get_int(const string &str);	 
 	void _get_mem_stat();
 	void _get_cpu_temp();
 	void _get_cpu_usage();
@@ -60,8 +53,7 @@ public:
 	// 4: Swap Total
 	// 5: Swap Free
 	int meminfo[6];
-	// 0: Cpu usage in %
-	float cpu[4] = {0, 0, 0, 0};
+	
 	int cpu_temp;
 	float cpu_usage;
 	int cpu_freq;
@@ -86,16 +78,6 @@ hw_info::hw_info()
 {
 	LOG("Class init")
 	_find_coretemp_sensor();
-	//File locations
-	_file_cpu_info = "/proc/cpuinfo"; // No use
-	_file_mem_info = "/proc/meminfo";
-	_file_stats = "/proc/stat";
-	_file_cpu_freq = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq"; // only for cpu0 fow now
-	// _file_cpu_temp is set by _find_coretemp_sensor()
-
-	// Regex
-	// _digits = regex("[0-9]+");
-	// _cpu = regex("[0-9]+");
 }
 
 void hw_info::refresh()
@@ -105,29 +87,6 @@ void hw_info::refresh()
 	_get_cpu_temp();
 	_get_cpu_usage();
 	_get_cpu_freq();
-	// ifstream _meminfo_file(_file_mem_info);
-	// ifstream _cpu_stat_file(_file_stats);
-	// ifstream _cpu_temp_file(_file_cpu_temp);
-
-	// // If any file reading fails throw exception
-	// if (_meminfo_file.fail() ||
-	// 	_cpu_stat_file.fail() ||
-	// 	_cpu_temp_file.fail())
-	// {
-	// 	cerr << "Failed to open one or more file:\n"
-	// 		 << _file_mem_info << ": " << _meminfo_file.is_open() << endl
-	// 		 << _file_stats << ": " << _cpu_stat_file.is_open() << endl
-	// 		 << _file_cpu_temp << ": " << _cpu_temp_file.is_open() << endl;
-	// 	throw std::runtime_error("One more file(s) cannot be opened");
-	// }
-
-	// cout << "Total Mem: " << meminfo[0] << endl;
-	// cout << "Free Mem: " << meminfo[1] << endl;
-	// cout << "Cached: " << meminfo[2] << endl;
-	//cout << "Cpu %: " << cpu[0] << endl;
-	// _meminfo_file.seekg(0);
-	// _cpu_stat_file.seekg(0);
-	//regex_search(total_mem, m, r);
 }
 
 void hw_info::_find_coretemp_sensor()
@@ -173,7 +132,7 @@ void hw_info::_find_coretemp_sensor()
 	}
 }
 
-int hw_info::_get_int(string str)
+int hw_info::_get_int(const string &str) 
 {
 	stringstream s(str);
 	string x;
@@ -183,7 +142,7 @@ int hw_info::_get_int(string str)
 				// store "MemFree:"
 	s >> nul;
 	s >> x; // Store proceding int in string above string
-			// i.e "MemFree:"
+			// i.e proceeding "MemFree:" i.e 1480184
 	LOG("in func _get_int, x = ")
 	LOG(x)
 	n = stoi(x);
