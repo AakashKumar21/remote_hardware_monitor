@@ -29,7 +29,6 @@ class hw_info
 	string _file_disk;
 	string _file_cpu_temp;
 
-	// _file_cpu_info = "/proc/cpuinfo"; // No use
 	const string _file_mem_info = "/proc/meminfo";
 	const string _file_stats = "/proc/stat";
 	// only for cpu0 fow now
@@ -53,7 +52,7 @@ public:
 	// 4: Swap Total
 	// 5: Swap Free
 	int meminfo[6];
-	
+
 	int cpu_temp;
 	float cpu_usage;
 	int cpu_freq;
